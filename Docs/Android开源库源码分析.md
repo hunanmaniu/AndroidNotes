@@ -75,7 +75,7 @@ OKHttp内部的大致请求流程图如下所示：
 
 如下为使用OKHttp进行Get请求的步骤：
 
-```
+```java
 //1.新建OKHttpClient客户端
 OkHttpClient client = new OkHttpClient();
 //新建一个Request对象
@@ -88,7 +88,7 @@ Response response = client.newCall(request).execute();
 
 ### 新建OKHttpClient客户端
 
-```
+```java
 OkHttpClient client = new OkHttpClient();
 
 public OkHttpClient() {
@@ -102,7 +102,7 @@ OkHttpClient(Builder builder) {
 
 可以看到，OkHttpClient使用了建造者模式，Builder里面的可配置参数如下：
 
-```
+```java
 public static final class Builder {
     Dispatcher dispatcher;// 分发器
     @Nullable Proxy proxy;
@@ -155,7 +155,7 @@ public static final class Builder {
 
 ### 同步请求流程
 
-```
+```java
 Response response = client.newCall(request).execute();
 
 /**
@@ -251,7 +251,7 @@ public Response proceed(Request request, StreamAllocation streamAllocation, Http
 
 ### 异步请求流程
 
-```
+```java
 Request request = new Request.Builder()
     .url("http://publicobject.com/helloworld.txt")
     .build();
@@ -318,7 +318,7 @@ private boolean promoteAndExecute() {
 
 最后，我们在看看AsynCall的代码。
 
-```
+```java
 final class AsyncCall extends NamedRunnable {
     private final Callback responseCallback;
 
@@ -394,7 +394,7 @@ final class AsyncCall extends NamedRunnable {
 
 ## 网络请求缓存处理之CacheInterceptor
 
-```
+```java
 @Override public Response intercept(Chain chain) throws IOException {
     // 根据request得到cache中缓存的response
     Response cacheCandidate = cache != null
@@ -500,7 +500,7 @@ final class AsyncCall extends NamedRunnable {
 
 ## ConnectInterceptor之连接池
 
-```
+```java
 @Override public Response intercept(Chain chain) throws IOException {
     RealInterceptorChain realChain = (RealInterceptorChain) chain;
     Request request = realChain.request();
@@ -659,7 +659,7 @@ private RealConnection findConnection(int   connectTimeout, int readTimeout, int
 
 OkHttp 的缓存管理分成两个步骤，一边当我们创建了一个新的连接的时候，我们要把它放进缓存里面；另一边，我们还要来对缓存进行清理。在 ConnectionPool 中，当我们向连接池中缓存一个连接的时候，只要调用双端队列的 add() 方法，将其加入到双端队列即可，而清理连接缓存的操作则交给线程池来定时执行。
 
-```
+```java
 private final Deque<RealConnection> connections = new ArrayDeque<>();
 
 void put(RealConnection connection) {
@@ -761,7 +761,7 @@ long cleanup(long now) {
 
 ### 定义HTTP API，用于描述请求
 
-```
+```java
 public interface GitHubService {
 
      @GET("users/{user}/repos")
@@ -773,7 +773,7 @@ public interface GitHubService {
 
 > （**注意：** 方法上面的注解表示请求的接口部分，返回类型是请求的返回值类型，方法的参数即是请求的参数）
 
-```
+```java
 // 1.Retrofit构建过程
 Retrofit retrofit = new Retrofit.Builder()
 .baseUrl("https://api.github.com/")
@@ -785,7 +785,7 @@ GitHubService service = retrofit.create(GitHubService.class);
 
 ### 调用API方法，生成Call，执行请求
 
-```
+```java
 // 3.生成并执行请求过程
 Call<List<Repo>> repos = service.listRepos("octocat");
 repos.execute() or repos.enqueue()
@@ -793,7 +793,7 @@ repos.execute() or repos.enqueue()
 
 Retrofit的基本使用流程很简洁，但是简洁并不代表简单，Retrofit为了实现这种简洁的使用流程，内部使用了优秀的架构设计和大量的设计模式，在分析过Retrofit最新版的源码和大量优秀的Retrofit源码分析文章后发现，要想真正理解Retrofit内部的核心源码流程和设计思想，首先，需要对这九大设计模式有一定的了解，如下：
 
-```
+```java
 1.Retrofit构建过程 
 建造者模式、工厂方法模式
 
@@ -812,7 +812,7 @@ Retrofit的基本使用流程很简洁，但是简洁并不代表简单，Retrof
 
 首先Retrofit中有一个全局变量非常关键，在V2.5之前的版本，使用的是LinkedHashMap()，它是一个网络请求配置对象，是由网络请求接口中方法注解进行解析后得到的。
 
-```
+```java
 public final class Retrofit {
 
     // 网络请求配置对象，存储网络请求相关的配置，如网络请求的方法、数据转换器、网络请求适配器、网络请求工厂、基地址等
@@ -821,7 +821,7 @@ public final class Retrofit {
 
 Retrofit使用了建造者模式通过内部类Builder类建立一个Retrofit实例，如下：
 
-```
+```java
 public static final class Builder {
 
     // 平台类型对象（Platform -> Android)
@@ -844,7 +844,7 @@ public static final class Builder {
 
 下面看看Builder内部构造做了什么。
 
-```
+```java
 public static final class Builder {
 
     ...
@@ -943,7 +943,7 @@ static class Android extends Platform {
 
 很简单，就是将String类型的url转换为OkHttp的HttpUrl过程如下：
 
-```
+```java
 /**
  * Set the API base URL.
  *
@@ -969,7 +969,7 @@ public Builder baseUrl(HttpUrl baseUrl) {
 
 首先，看到GsonConverterFactory.creat()的源码。
 
-```
+```java
 public final class GsonConverterFactory extends Converter.Factory {
  
     public static GsonConverterFactory create() {
@@ -993,7 +993,7 @@ public final class GsonConverterFactory extends Converter.Factory {
 
 然后，看看addConverterFactory()方法内部。
 
-```
+```java
 public Builder addConverterFactory(Converter.Factory factory) {
     converterFactories.add(checkNotNull(factory, "factory null"));
     return this;
@@ -1004,7 +1004,7 @@ public Builder addConverterFactory(Converter.Factory factory) {
 
 ### build过程
 
-```
+```java
 public Retrofit build() {
 
     if (baseUrl == null) {
@@ -1049,7 +1049,7 @@ public Retrofit build() {
 
 retrofit.create()使用了外观模式和代理模式创建了网络请求的接口实例，我们分析下create方法。
 
-```
+```java
 public <T> T create(final Class<T> service) {
     Utils.validateServiceInterface(service);
     if (validateEagerly) {
@@ -1090,7 +1090,7 @@ private void eagerlyValidateMethods(Class<?> service) {
 
 继续看看loadServiceMethod的内部流程
 
-```
+```java
 ServiceMethod<?> loadServiceMethod(Method method) {
 
     ServiceMethod<?> result = serviceMethodCache.get(method);
@@ -1135,7 +1135,7 @@ abstract class ServiceMethod<T> {
 
 根据RequestFactory#Builder构造方法和parseAnnotations方法的源码，可知的它的作用就是用来解析注解配置的。
 
-```
+```java
 Builder(Retrofit retrofit, Method method) {
     this.retrofit = retrofit;
     this.method = method;
@@ -1150,7 +1150,7 @@ Builder(Retrofit retrofit, Method method) {
 
 接着看HttpServiceMethod.parseAnnotations()的内部流程。
 
-```
+```java
 static <ResponseT, ReturnT> HttpServiceMethod<ResponseT, ReturnT> parseAnnotations(
       Retrofit retrofit, Method method, RequestFactory requestFactory) {
         
@@ -1175,7 +1175,7 @@ static <ResponseT, ReturnT> HttpServiceMethod<ResponseT, ReturnT> parseAnnotatio
 
 #### createCallAdapter(retrofit, method)
 
-```
+```java
 private static <ResponseT, ReturnT> CallAdapter<ResponseT, ReturnT>     createCallAdapter(
       Retrofit retrofit, Method method) {
       
@@ -1213,7 +1213,7 @@ public CallAdapter<?, ?> nextCallAdapter(@Nullable CallAdapter.Factory skipPast,
 
 #### createResponseConverter(Retrofit retrofit, Method method, Type responseType)
 
-```
+```java
  private static <ResponseT> Converter<ResponseBody, ResponseT>  createResponseConverter(
      Retrofit retrofit, Method method, Type responseType) {
    Annotation[] annotations = method.getAnnotations();
@@ -1246,7 +1246,7 @@ for (int i = start, count = converterFactories.size(); i < count; i++) {
 
 #### 执行HttpServiceMethod的invoke方法
 
-```
+```java
 @Override ReturnT invoke(Object[] args) {
     return callAdapter.adapt(
         new OkHttpCall<>(requestFactory, args, callFactory, responseConverter));
@@ -1259,7 +1259,7 @@ for (int i = start, count = converterFactories.size(); i < count; i++) {
 
 ### service.listRepos()
 
-```
+```java
 1、Call<List<Repo>> repos = service.listRepos("octocat");
 ```
 
@@ -1267,7 +1267,7 @@ service对象是动态代理对象Proxy.newProxyInstance()，当调用getCall()�
 
 ### 同步执行流程 repos.execute()
 
-```
+```java
 @Override public Response<T> execute() throws IOException {
     okhttp3.Call call;
 
@@ -1361,7 +1361,7 @@ Response<T> parseResponse(okhttp3.Response rawResponse) throws IOException {
 
 ### 异步请求流程 reponse.enqueque
 
-```
+```java
 @Override 
 public void enqueue(final Callback<T> callback) {
 
@@ -1396,7 +1396,7 @@ public void enqueue(final Callback<T> callback) {
 
 看看 delegate.enqueue 内部流程。
 
-```
+```java
 @Override 
 public void enqueue(final Callback<T> callback) {
    
@@ -1477,13 +1477,13 @@ public void enqueue(final Callback<T> callback) {
 
 Glide最基本的使用流程就是下面这行代码，其它所有扩展的额外功能都是以其建造者链式调用的基础上增加的。
 
-```
+```java
 GlideApp.with(context).load(url).into(iv);
 ```
 
 其中的GlideApp是注解处理器自动生成的，要使用GlideApp，必须先配置应用的AppGlideModule模块，里面可以为空配置，也可以根据实际情况添加指定配置。
 
-```
+```java
 @GlideModule
 public class MyAppGlideModule extends AppGlideModule {
 
@@ -1513,13 +1513,13 @@ public class MyAppGlideModule extends AppGlideModule {
 
 ### GlideApp#with
 
-```
+```java
 return (GlideRequests) Glide.with(context);
 ```
 
 ### Glide#with
 
-```
+```java
 return getRetriever(context).get(context);
 
 return Glide.get(context).getRequestManagerRetriever();
@@ -1573,7 +1573,7 @@ initializeGlide(context, new GlideBuilder());
 
 ### GlideBuilder#build
 
-```
+```java
 @NonNull
   Glide build(@NonNull Context context) {
     // 创建请求图片线程池sourceExecutor
@@ -1658,7 +1658,7 @@ initializeGlide(context, new GlideBuilder());
 
 ### Glide#Glide构造方法
 
-```
+```java
 Glide(...) {
     ...
     // 注册管理任务执行对象的类(Registry)
@@ -1691,7 +1691,7 @@ Glide(...) {
 
 ### RequestManagerRetriever#get
 
-```
+```java
 @NonNull
 public RequestManager get(@NonNull Context context) {
   if (context == null) {
@@ -1728,7 +1728,7 @@ public RequestManager get(@NonNull Context context) {
 
 ### GlideRequest(RequestManager)#load
 
-```
+```java
 return (GlideRequest<Drawable>) super.load(string);
 
 return asDrawable().load(string);
@@ -1768,7 +1768,7 @@ private RequestBuilder<TranscodeType> loadGeneric(@Nullable Object model) {
 
 ### RequestBuilder.into
 
-```
+```java
  @NonNull
 public ViewTarget<ImageView, TranscodeType>   into(@NonNull ImageView view) {
   Util.assertMainThread();
@@ -1815,13 +1815,13 @@ public ViewTarget<ImageView, TranscodeType>   into(@NonNull ImageView view) {
 
 ### GlideContext#buildImageViewTarget
 
-```
+```java
 return imageViewTargetFactory.buildTarget(imageView, transcodeClass);
 ```
 
 ### ImageViewTargetFactory#buildTarget
 
-```
+```java
 @NonNull
 @SuppressWarnings("unchecked")
 public <Z> ViewTarget<ImageView, Z>   buildTarget(@NonNull ImageView view,
@@ -1842,7 +1842,7 @@ public <Z> ViewTarget<ImageView, Z>   buildTarget(@NonNull ImageView view,
 
 ### RequestBuilder#into
 
-```
+```java
 private <Y extends Target<TranscodeType>> Y into(
       @NonNull Y target,
       @Nullable RequestListener<TranscodeType>   targetListener,
@@ -2071,7 +2071,7 @@ private Request obtainRequest(
 
 ### RequestManager#track
 
-```
+```java
 // 分析2
 void track(@NonNull Target<?> target, @NonNull Request request) {
     // 加入一个target目标集合(Set)
@@ -2083,7 +2083,7 @@ void track(@NonNull Target<?> target, @NonNull Request request) {
 
 ### RequestTracker#runRequest
 
-```
+```java
 /**
 * Starts tracking the given request.
 */
@@ -2106,7 +2106,7 @@ public void runRequest(@NonNull Request request) {
 
 ### SingleRequest#begin
 
-```
+```java
 // 分析2
 @Override
 public void begin() {
@@ -2156,7 +2156,7 @@ public void begin() {
 
 ### SingleRequest#onSizeReady
 
-```
+```java
 // 分析2
 @Override
 public void onSizeReady(int width, int height) {
@@ -2201,7 +2201,7 @@ public void onSizeReady(int width, int height) {
 
 ### Engine#load
 
-```
+```java
 public <R> LoadStatus load(
     GlideContext glideContext,
     Object model,
@@ -2312,7 +2312,7 @@ public void start(DecodeJob<R> decodeJob) {
 
 ### DecodeJob#run
 
-```
+```java
 runWrapped();
 
 private void runWrapped() {
@@ -2355,7 +2355,7 @@ private DataFetcherGenerator getNextGenerator() {
 
 ### SourceGenerator#startNext
 
-```
+```java
 // 关注点2
 @Override
 public boolean startNext() {
@@ -2393,7 +2393,7 @@ public boolean startNext() {
 
 ### DecodeHelper#getLoadData
 
-```
+```java
 List<LoadData<?>> getLoadData() {
     if (!isLoadDataSet) {
       isLoadDataSet = true;
@@ -2416,7 +2416,7 @@ List<LoadData<?>> getLoadData() {
 
 ### HttpGlideUrlLoader#buildLoadData
 
-```
+```java
 @Override
 public LoadData<InputStream> buildLoadData(@NonNull   GlideUrl model, int width, int height,
     @NonNull Options options) {
@@ -2448,7 +2448,7 @@ public void put(A model, int width, int height, B value) {
 
 ### HttpUrlFetcher#loadData
 
-```
+```java
 @Override
 public void loadData(@NonNull Priority priority,
     @NonNull DataCallback<? super InputStream>   callback) {
@@ -2521,13 +2521,13 @@ private InputStream getStreamForSuccessfulRequest(HttpURLConnection urlConnectio
 
 在我们通过HtttpUrlFetcher的loadData()方法请求得到对应的流之后，我们还必须对流进行处理得到最终我们想要的资源。这里我们回到第10步DecodeJob#run方法的关注点3处，这行代码将会对流进行解码。
 
-```
+```java
 decodeFromRetrievedData();
 ```
 
 接下来，继续看看他内部的处理。
 
-```
+```java
 private void decodeFromRetrievedData() {
     if (Log.isLoggable(TAG, Log.VERBOSE)) {
       logWithTimeAndKey("Retrieved data", startFetchTime,
@@ -2600,7 +2600,7 @@ private <Data, ResourceType> Resource<R> runLoadPath(Data data, DataSource dataS
 
 ### LoadPath#load
 
-```
+```java
 public Resource<Transcode> load(DataRewinder<Data> rewinder, @NonNull Options options, int width,
   int height, DecodePath.DecodeCallback<ResourceType> decodeCallback) throws GlideException {
 List<Throwable> throwables = Preconditions.checkNotNull(listPool.acquire());
@@ -2614,7 +2614,7 @@ try {
 
 }
 
-```
+```java
 private Resource<Transcode> loadWithExceptionList(DataRewinder<Data> rewinder,
       @NonNull Options options,
       int width, int height, DecodePath.DecodeCallback<ResourceType>   decodeCallback,
@@ -2645,7 +2645,7 @@ private Resource<Transcode> loadWithExceptionList(DataRewinder<Data> rewinder,
 
 ### DecodePath#decode
 
-```
+```java
 public Resource<Transcode> decode(DataRewinder<DataType> rewinder,     int width, int height,
       @NonNull Options options, DecodeCallback<ResourceType> callback)   throws GlideException {
     // 核心代码
@@ -2706,7 +2706,7 @@ private Resource<ResourceType>   decodeResourceWithList(DataRewinder<DataType> r
 
 ### ByteBufferBitmapDecoder#decode
 
-```
+```java
 /**
  * Decodes {@link android.graphics.Bitmap Bitmaps} from {@link    java.nio.ByteBuffer ByteBuffers}.
  */
@@ -2729,7 +2729,7 @@ public class ByteBufferBitmapDecoder implements     ResourceDecoder<ByteBuffer, 
 
 ### DownSampler#decode
 
-```
+```java
 public Resource<Bitmap> decode(InputStream is, int outWidth, int outHeight,
   Options options) throws IOException {
     return decode(is, outWidth, outHeight, options, EMPTY_CALLBACKS);
@@ -2805,7 +2805,7 @@ private static Bitmap decodeStream(InputStream is,     BitmapFactory.Options opt
 
 ### DecodeJob#notifyEncodeAndRelease
 
-```
+```java
 private void notifyEncodeAndRelease(Resource<R> resource, DataSource     dataSource) {
  
     ...
@@ -2824,7 +2824,7 @@ private void notifyComplete(Resource<R> resource, DataSource     dataSource) {
 
 从以上EngineJob的源码可知，它实现了DecodeJob.CallBack这个接口。
 
-```
+```java
 class EngineJob<R> implements DecodeJob.Callback<R>,
     Poolable {
     ...
@@ -2833,7 +2833,7 @@ class EngineJob<R> implements DecodeJob.Callback<R>,
 
 ### EngineJob#onResourceReady
 
-```
+```java
 @Override
 public void onResourceReady(Resource<R> resource, DataSource   dataSource) {
   this.resource = resource;
@@ -2862,7 +2862,7 @@ private static class MainThreadCallback implements Handler.Callback{
 
 从以上源码可知，通过主线程Handler对象进行切换线程，然后在主线程调用了handleResultOnMainThread这个方法。
 
-```
+```java
 @Synthetic
 void handleResultOnMainThread() {
   ...
@@ -2884,7 +2884,7 @@ void handleResultOnMainThread() {
 
 ### SingleRequest#onResourceReady
 
-```
+```java
 /**
  * A callback method that should never be invoked directly.
  */
@@ -2926,7 +2926,7 @@ private void onResourceReady(Resource<R> resource, R resultDataSource dataSource
 
 ### ImageViewTarget#onResourceReady
 
-```
+```java
 public abstract class ImageViewTarget<Z> extends ViewTarget<ImageView, Z>
 implements Transition.ViewAdapter {
 
@@ -2959,7 +2959,7 @@ implements Transition.ViewAdapter {
 
 这里我们在回到BitmapImageViewTarget的setResource方法中，终于看到Bitmap被设置到了当前的imageView上了。
 
-```
+```java
 public class BitmapImageViewTarget extends ImageViewTarget<Bitmap> {
 
     ...
@@ -2988,7 +2988,7 @@ public class BitmapImageViewTarget extends ImageViewTarget<Bitmap> {
 
 ### 导入GreenDao的代码生成插件和库
 
-```
+```java
 // 项目下的build.gradle
 buildscript {
     ...
@@ -3012,7 +3012,7 @@ dependencies {
 
 ### 创建一个实体类，这里为HistoryData
 
-```
+```java
 @Entity
 public class HistoryData {
 
@@ -3029,7 +3029,7 @@ public class HistoryData {
 
 ![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/75ea30aea6034e939918d0da2b43c9d9~tplv-k3u1fbpfcp-zoom-1.image)
 
-```
+```java
 @Entity
 public class HistoryData {
 
@@ -3085,7 +3085,7 @@ public class HistoryData {
 
 ### 获取并使用相应的Dao对象进行增删改查操作
 
-```
+```java
 DaoMaster.DevOpenHelper devOpenHelper = new DaoMaster.DevOpenHelper(this, Constants.DB_NAME);
 SQLiteDatabase database = devOpenHelper.getWritableDatabase();
 DaoMaster daoMaster = new DaoMaster(database);
@@ -3114,13 +3114,13 @@ List<HistoryData> historyDataList = historyDataDao.loadAll();
 
 ### 创建数据库帮助类对象DaoMaster.DevOpenHelper
 
-```
+```java
 DaoMaster.DevOpenHelper devOpenHelper = new DaoMaster.DevOpenHelper(this, Constants.DB_NAME);
 ```
 
 创建GreenDao内部实现的数据库帮助类对象devOpenHelper，核心源码如下：
 
-```
+```java
 public class DaoMaster extends AbstractDaoMaster {
 
     ...
@@ -3152,7 +3152,7 @@ public class DaoMaster extends AbstractDaoMaster {
 
 DevOpenHelper自身实现了更新的逻辑，这里是弃置了所有的表，并且调用了OpenHelper实现的onCreate方法用于创建所有的表，其中DevOpenHelper继承于OpenHelper，而OpenHelper自身又继承于DatabaseOpenHelper，那么，这个DatabaseOpenHelper这个类的作用是什么呢？
 
-```
+```java
 public abstract class DatabaseOpenHelper extends SQLiteOpenHelper {
 
     ...
@@ -3198,7 +3198,7 @@ public abstract class DatabaseOpenHelper extends SQLiteOpenHelper {
 
 其实，DatabaseOpenHelper也是实现了SQLiteOpenHelper的一个帮助类，它内部可以获取到两种不同的数据库类型，一种是标准型的数据库**StandardDatabase**，另一种是加密型的数据库**EncryptedDatabase**，从以上源码可知，它们内部都通过wrap这样一个包装的方法，返回了对应的数据库类型，我们大致看一下StandardDatabase和EncryptedDatabase的内部实现。
 
-```
+```java
 public class StandardDatabase implements Database {
 
     // 这里的SQLiteDatabase是android.database.sqlite.SQLiteDatabase包下的
@@ -3243,14 +3243,14 @@ StandardDatabase和EncryptedDatabase这两个类内部都使用了**代理模式
 
 ### 创建DaoMaster对象
 
-```
+```java
 SQLiteDatabase database = devOpenHelper.getWritableDatabase();
 DaoMaster daoMaster = new DaoMaster(database);
 ```
 
 首先，DaoMaster作为所有Dao对象的主人，它内部肯定是需要一个SQLiteDatabase对象的，因此，先由DaoMaster的帮助类对象devOpenHelper的getWritableDatabase方法得到一个标准的数据库类对象database，再由此创建一个DaoMaster对象。
 
-```
+```java
 public class DaoMaster extends AbstractDaoMaster {
 
     ...
@@ -3270,7 +3270,7 @@ public class DaoMaster extends AbstractDaoMaster {
 
 在DaoMaster的构造方法中，它首先执行了super(db, SCHEMA_VERSION)方法，即它的父类AbstractDaoMaster的构造方法。
 
-```
+```java
 public abstract class AbstractDaoMaster {
 
     ...
@@ -3295,13 +3295,13 @@ public abstract class AbstractDaoMaster {
 
 ### 创建DaoSession对象
 
-```
+```java
 mDaoSession = daoMaster.newSession();
 ```
 
 在DaoMaster对象中使用了newSession方法新建了一个DaoSession对象。
 
-```
+```java
 public DaoSession newSession() {
     return new DaoSession(db, IdentityScopeType.Session, daoConfigMap);
 }
@@ -3309,7 +3309,7 @@ public DaoSession newSession() {
 
 在DaoSeesion的构造方法中，又做了哪些事情呢？
 
-```
+```java
 public class DaoSession extends AbstractDaoSession {
 
     ...
@@ -3332,7 +3332,7 @@ public class DaoSession extends AbstractDaoSession {
 
 首先，调用了父类AbstractDaoSession的构造方法。
 
-```
+```java
 public class AbstractDaoSession {
 
     ...
@@ -3358,7 +3358,7 @@ public class AbstractDaoSession {
 
 ### 插入源码分析
 
-```
+```java
 HistoryDataDao historyDataDao = daoSession.getHistoryDataDao();
 
 // 增
@@ -3367,7 +3367,7 @@ historyDataDao.insert(historyData);
 
 这里首先在会话层DaoSession中获取了我们要操作的Dao对象HistoryDataDao，然后插入了一个我们预先创建好的historyData实体对象。其中HistoryDataDao继承了AbstractDao<HistoryData, Long> 。
 
-```
+```java
 public class HistoryDataDao extends AbstractDao<HistoryData, Long> {
     ...
 }
@@ -3375,7 +3375,7 @@ public class HistoryDataDao extends AbstractDao<HistoryData, Long> {
 
 那么，这个AbstractDao是干什么的呢？
 
-```
+```java
 public abstract class AbstractDao<T, K> {
 
     ...
@@ -3406,7 +3406,7 @@ public abstract class AbstractDao<T, K> {
 
 看到这里，根据程序员优秀的直觉，大家应该能猜到，AbstractDao是所有Dao对象的基类，它实现了实体数据的操作如增删改查。我们接着分析insert是如何实现的，在AbstractDao的insert方法中又调用了executeInsert这个方法。在这个方法中，第二个参里的statements是一个**TableStatements**对象，它是在AbstractDao初始化构造器时从DaoConfig对象中取出来的，是一个**根据指定的表格创建SQL语句的一个帮助类**。使用statements.getInsertStatement()则是获取了一个插入的语句。而第三个参数则是判断是否是主键的标志。
 
-```
+```java
 public class TableStatements {
 
     ...
@@ -3432,7 +3432,7 @@ public class TableStatements {
 
 我们继续往下分析executeInsert的执行流程。
 
-```
+```java
 private long executeInsert(T entity, DatabaseStatement stmt, boolean setKeyAndAttach) {
     long rowId;
     if (db.isDbLockedByCurrentThread()) {
@@ -3455,7 +3455,7 @@ private long executeInsert(T entity, DatabaseStatement stmt, boolean setKeyAndAt
 
 这里首先是判断数据库是否被当前线程锁定，如果是，则直接插入数据，否则为了避免死锁，则开启一个数据库事务，再进行插入数据的操作。最后如果设置了主键，则在插入数据之后更新主键的值并将对应的实体缓存到相应的identityScope中，这一块的代码流程如下所示：
 
-```
+```java
 protected void updateKeyAfterInsertAndAttach(T entity, long rowId, boolean lock) {
     if (rowId != -1) {
         K key = updateKeyAfterInsert(entity, rowId);
@@ -3479,7 +3479,7 @@ protected final void attachEntity(K key, T entity, boolean lock) {
 
 接着，我们还是继续追踪主线流程，在executeInsert这个方法中调用了insertInsideTx进行数据的插入。
 
-```
+```java
 private long insertInsideTx(T entity, DatabaseStatement stmt) {
     synchronized (stmt) {
         if (isStandardSQLite) {
@@ -3496,7 +3496,7 @@ private long insertInsideTx(T entity, DatabaseStatement stmt) {
 
 为了防止并发，这里使用了悲观锁保证了数据的一致性，在AbstractDao这个类中，大量使用了这种锁保证了它的线程安全性。接着，如果当前是标准数据库，则直接获取stmt这个DatabaseStatement类对应的原始语句进行实体字段属性的绑定和最后的执行插入操作。如果是加密数据库，则直接使用当前的加密数据库所属的插入语句进行实体字段属性的绑定和执行最后的插入操作。其中bindValues这个方法对应的实现类就是我们的HistoryDataDao类。
 
-```
+```java
 public class HistoryDataDao extends AbstractDao<HistoryData, Long> {
 
     ...
@@ -3543,7 +3543,7 @@ public class HistoryDataDao extends AbstractDao<HistoryData, Long> {
 
 经过对插入源码的分析，相信大家对GreenDao内部的机制已经有了一些自己的理解，由于删除和更新内部的流程比较简单，且与插入源码有异曲同工之妙，这里就不再赘述了。最后再分析下查询的源码，查询的流程调用链较长，所以将它的核心流程源码直接给出。
 
-```
+```java
 List<HistoryData> historyDataList = historyDataDao.loadAll();
 
 public List<T> loadAll() {
@@ -3595,7 +3595,7 @@ protected List<T> loadAllFromCursor(Cursor cursor) {
 
 最终，loadAll方法将会调用到loadAllFromCursor这个方法，首先，如果**当前的游标cursor是跨进程的cursor**，并且cursor的行数没有偏差的话，则使用一个加快版的**FastCursor**对象进行游标遍历。接着，不管是执行loadAllUnlockOnWindowBounds这个方法还是直接加载当前的数据列表list.add(loadCurrent(cursor, 0, false))，最后都会调用到这行list.add(loadCurrent(cursor, 0, false))代码，很明显，loadCurrent方法就是加载数据的方法。
 
-```
+```java
 final protected T loadCurrent(Cursor cursor, int offset, boolean lock) {
     if (identityScopeLong != null) {
         ...
@@ -3635,7 +3635,7 @@ final protected T loadCurrent(Cursor cursor, int offset, boolean lock) {
 
 **首先，如果有实体数据缓存identityScopeLong/identityScope，则先从缓存中取，如果缓存中没有，会使用该实体对应的Dao对象，这里的是HistoryDataDao，它在内部根据游标取出的数据新建了一个新的HistoryData实体对象返回。**
 
-```
+```java
 @Override
 public HistoryData readEntity(Cursor cursor, int offset) {
     HistoryData entity = new HistoryData( //
@@ -3655,7 +3655,7 @@ public HistoryData readEntity(Cursor cursor, int offset) {
 
 首先，看下与rx结合的使用流程：
 
-```
+```java
 RxDao<HistoryData, Long> xxDao = daoSession.getHistoryDataDao().rx();
 xxDao.insert(historyData)
         .observerOn(AndroidSchedulers.mainThread())
@@ -3669,7 +3669,7 @@ xxDao.insert(historyData)
 
 在AbstractDao对象的.rx()方法中，创建了一个默认执行在io线程的rxDao对象。
 
-```
+```java
 @Experimental
 public RxDao<T, K> rx() {
     if (rxDao == null) {
@@ -3681,7 +3681,7 @@ public RxDao<T, K> rx() {
 
 接着分析rxDao的insert方法。
 
-```
+```java
 @Experimental
 public Observable<T> insert(final T entity) {
     return wrap(new Callable<T>() {
@@ -3696,7 +3696,7 @@ public Observable<T> insert(final T entity) {
 
 起实质作用的就是这个wrap方法了，在这个方法里面主要是调用了RxUtils.fromCallable(callable)这个方法。
 
-```
+```java
 @Internal
 class RxBase {
 
@@ -3720,7 +3720,7 @@ class RxBase {
 
 在RxUtils的fromCallable这个方法内部，其实就是**使用defer这个延迟操作符来进行被观察者事件的发送，主要目的就是为了确保Observable被订阅后才执行**。最后，如果调度器scheduler存在的话，将通过外部的wrap方法将执行环境调度到io线程。
 
-```
+```java
 @Internal
 class RxUtils {
 
@@ -3771,7 +3771,7 @@ RxJava是基于Java虚拟机上的响应式扩展库，它通过**使用可观�
 
 首先给出RxJava消息订阅的例子：
 
-```
+```java
 Observable.create(newObservableOnSubscribe<String>() {
     @Override
     public void subscribe(ObservableEmitter<String>emitter) throws Exception {
@@ -3812,7 +3812,7 @@ Observable.create(newObservableOnSubscribe<String>() {
 
 #### Observable#create()
 
-```
+```java
 // 省略一些检测性的注解
 public static <T> Observable<T> create(ObservableOnSubscribe<T> source) {
     ObjectHelper.requireNonNull(source, "source is null");
@@ -3824,7 +3824,7 @@ public static <T> Observable<T> create(ObservableOnSubscribe<T> source) {
 
 #### ObservableCreate
 
-```
+```java
 public final class ObservableCreate<T> extends Observable<T> {
 
     final ObservableOnSubscribe<T> source;
@@ -3841,7 +3841,7 @@ public final class ObservableCreate<T> extends Observable<T> {
 
 #### RxJavaPlugins#onAssembly()
 
-```
+```java
 public static <T> Observable<T> onAssembly(@NonNull Observable<T> source) {
 
     // 应用hook函数的一些处理，一般用到不到
@@ -3862,7 +3862,7 @@ public static <T> Observable<T> onAssembly(@NonNull Observable<T> source) {
 
 #### Observable#subscribe()
 
-```
+```java
 public final void subscribe(Observer<? super T> observer) {
     ...
     
@@ -3882,7 +3882,7 @@ public final void subscribe(Observer<? super T> observer) {
 
 #### RxJavaPlugins#onSubscribe()
 
-```
+```java
 public static <T> Observer<? super T> onSubscribe(@NonNull Observable<T> source, @NonNull Observer<? super T> observer) {
 
     // 应用hook函数的一些处理，一般用到不到
@@ -3896,7 +3896,7 @@ public static <T> Observer<? super T> onSubscribe(@NonNull Observable<T> source,
 
 #### Observable#subscribeActual()
 
-```
+```java
 protected abstract void subscribeActual(Observer<? super T> observer);
 ```
 
@@ -3904,7 +3904,7 @@ protected abstract void subscribeActual(Observer<? super T> observer);
 
 #### ObservableCreate#subscribeActual()
 
-```
+```java
 @Override
 protected void subscribeActual(Observer<? super T> observer) {
     // 1
@@ -3926,7 +3926,7 @@ protected void subscribeActual(Observer<? super T> observer) {
 
 ##### CreateEmitter
 
-```
+```java
 static final class CreateEmitter<T>
 extends AtomicReference<Disposable>
 implements ObservableEmitter<T>, Disposable {
@@ -3947,7 +3947,7 @@ implements ObservableEmitter<T>, Disposable {
 
 ##### ObservableOnSubscribe#subscribe()
 
-```
+```java
 Observable observable = Observable.create(new ObservableOnSubscribe<String>() {
     @Override
     public voidsubscribe(ObservableEmitter<String> emitter) throws Exception {
@@ -3963,7 +3963,7 @@ Observable observable = Observable.create(new ObservableOnSubscribe<String>() {
 
 ##### CreateEmitter#onNext() && CreateEmitter#onComplete()
 
-```
+```java
 static final class CreateEmitter<T>
 extends AtomicReference<Disposable>
 implements ObservableEmitter<T>, Disposable {
@@ -4001,7 +4001,7 @@ public void onComplete() {
 
 ##### ObservableEmitter#isDisposed()
 
-```
+```java
 @Override
 public boolean isDisposed() {
     return DisposableHelper.isDisposed(get());
@@ -4012,7 +4012,7 @@ public boolean isDisposed() {
 
 ##### DisposableHelper#isDisposed() && DisposableHelper#set()
 
-```
+```java
 public enum DisposableHelper implements Disposable {
 
     DISPOSED;
@@ -4067,7 +4067,7 @@ DisposableHelper是一个枚举类，内部只有一个值即DISPOSED, 从上面
 
 ##### CreateEmitter
 
-```
+```java
 @Override
 public void onNext(T t) {
     ...
@@ -4121,7 +4121,7 @@ public void onComplete() {
 
 首先给出RxJava线程切换的例子：
 
-```
+```java
 Observable.create(new ObservableOnSubscribe<String>() {
     @Override
     public voidsubscribe(ObservableEmitter<String>emitter) throws Exception {
@@ -4161,7 +4161,7 @@ Observable.create(new ObservableOnSubscribe<String>() {
 
 ### Schedulers#io()
 
-```
+```java
 static final Scheduler IO;
 
 ...
@@ -4196,7 +4196,7 @@ Schedulers这个类的代码很多，这里我只拿出有关Schedulers.io这个
 
 ### Observable#subscribeOn()
 
-```
+```java
   public final Observable<T> subscribeOn(Scheduler scheduler) {
     ...
     
@@ -4208,7 +4208,7 @@ Schedulers这个类的代码很多，这里我只拿出有关Schedulers.io这个
 
 ### ObservableSubscribeOn
 
-```
+```java
 public final class ObservableSubscribeOn<T> extends AbstractObservableWithUpstream<T, T> {
     final Scheduler scheduler;
 
@@ -4238,7 +4238,7 @@ public final class ObservableSubscribeOn<T> extends AbstractObservableWithUpstre
 
 ### ObservableSubscribeOn#SubscribeTask
 
-```
+```java
 final class SubscribeTask implements Runnable {
     private final SubscribeOnObserver<T> parent;
 
@@ -4257,7 +4257,7 @@ SubscribeTask是ObservableSubscribeOn的内部类，它实质上就是一个任�
 
 ### Scheduler#scheduleDirect()
 
-```
+```java
 public Disposable scheduleDirect(@NonNull Runnable run) {
     return scheduleDirect(run, 0L, TimeUnit.NANOSECONDS);
 }
@@ -4284,7 +4284,7 @@ public Disposable scheduleDirect(@NonNull Runnable run, long delay, @NonNull Tim
 
 #### IOScheduler#createWorker()
 
-```
+```java
 final AtomicReference<CachedWorkerPool> pool;
 
 ...
@@ -4322,7 +4322,7 @@ static final class EventLoopWorker extends Scheduler.Worker {
 
 #### IoScheduler#schedule()
 
-```
+```java
 @Override
 public Disposable schedule(@NonNull Runnableaction, long delayTime, @NonNull TimeUnit unit){
     ...
@@ -4335,7 +4335,7 @@ public Disposable schedule(@NonNull Runnableaction, long delayTime, @NonNull Tim
 
 #### NewThreadWorker#scheduleActual()
 
-```
+```java
 public NewThreadWorker(ThreadFactory threadFactory) {
     executor = SchedulerPoolFactory.create(threadFactory);
 }
@@ -4385,7 +4385,7 @@ public ScheduledRunnable scheduleActual(final Runnable run, long delayTime, @Non
 
 ### observeOn(AndroidSchedulers.mainThread())
 
-```
+```java
 public final Observable<T> observeOn(Scheduler scheduler) {
     return observeOn(scheduler, false, bufferSize());
 }
@@ -4401,7 +4401,7 @@ public final Observable<T> observeOn(Scheduler scheduler, boolean delayError, in
 
 ### ObservableObserveOn#subscribeActual()
 
-```
+```java
 @Override
 protected void subscribeActual(Observer<? super T> observer) {
     // 1
@@ -4421,7 +4421,7 @@ protected void subscribeActual(Observer<? super T> observer) {
 
 ### ObserveOnObserver
 
-```
+```java
 @Override
 public void onNext(T t) {
     ...
@@ -4450,7 +4450,7 @@ public void onComplete() {
 
 ### ObserveOnObserver#schedule()
 
-```
+```java
 void schedule() {
     if (getAndIncrement() == 0) {
         worker.schedule(this);
@@ -4462,7 +4462,7 @@ void schedule() {
 
 ### ObserveOnObserver#run()
 
-```
+```java
 @Override
 public void run() {
     // 1
@@ -4479,7 +4479,7 @@ public void run() {
 
 ### ObserveOnObserver#drainNormal()
 
-```
+```java
 void drainNormal() {
     int missed = 1;
     
@@ -4535,7 +4535,7 @@ void drainNormal() {
 
 首先在你项目app下的build.gradle中配置:
 
-```
+```java
 dependencies {
   debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
   releaseImplementation   'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
@@ -4546,7 +4546,7 @@ dependencies {
 
 然后在你的Application中配置:
 
-```
+```java
 public class WanAndroidApp extends Application {
 
     private RefWatcher refWatcher;
@@ -4570,7 +4570,7 @@ public class WanAndroidApp extends Application {
 
 在注释1处，会首先判断当前进程是否是Leakcanary专门用于分析heap内存的而创建的那个进程，即HeapAnalyzerService所在的进程，如果是的话，则不进行Application中的初始化功能。如果是当前应用所处的主进程的话，则会执行注释2处的LeakCanary.install(this)进行LeakCanary的安装。只需这样简单的几行代码，我们就可以在应用中检测是否产生了内存泄露了。当然，这样使用只会检测Activity和标准Fragment是否发生内存泄漏，如果要检测V4包的Fragment在执行完onDestroy()之后是否发生内存泄露的话，则需要在Fragment的onDestroy()方法中加上如下两行代码去监视当前的Fragment：
 
-```
+```java
 RefWatcher refWatcher = WanAndroidApp.getRefWatcher(_mActivity);
 refWatcher.watch(this);
 ```
@@ -4581,7 +4581,7 @@ refWatcher.watch(this);
 
 ### LeakCanary#install()
 
-```
+```java
 public static @NonNull RefWatcher install(@NonNull Application application) {
   return refWatcher(application).listenerServiceClass(DisplayLeakService.class)
       .excludedRefs(AndroidExcludedRefs.createAppDefaults().build())
@@ -4601,7 +4601,7 @@ public static @NonNull RefWatcher install(@NonNull Application application) {
 
 首先，我们来看下第一步，这里调用了LeakCanary类的refWatcher方法，如下所示：
 
-```
+```java
 public static @NonNull AndroidRefWatcherBuilder refWatcher(@NonNull Context context) {
   return new AndroidRefWatcherBuilder(context);
 }
@@ -4611,7 +4611,7 @@ public static @NonNull AndroidRefWatcherBuilder refWatcher(@NonNull Context cont
 
 ### AndroidRefWatcherBuilder
 
-```
+```java
 /** A {@link RefWatcherBuilder} with appropriate Android defaults. */
 public final class AndroidRefWatcherBuilder extends RefWatcherBuilder<AndroidRefWatcherBuilder> {
 
@@ -4629,7 +4629,7 @@ public final class AndroidRefWatcherBuilder extends RefWatcherBuilder<AndroidRef
 
 ### RefWatcherBuilder
 
-```
+```java
 public class RefWatcherBuilder<T extends RefWatcherBuilder<T>> {
 
     ...
@@ -4648,7 +4648,7 @@ public class RefWatcherBuilder<T extends RefWatcherBuilder<T>> {
 
 ### AndroidRefWatcherBuilder#listenerServiceClass()
 
-```
+```java
 public @NonNull AndroidRefWatcherBuilder listenerServiceClass(
   @NonNull Class<? extends AbstractAnalysisResultService> listenerServiceClass) {
     return heapDumpListener(new ServiceHeapDumpListener(context, listenerServiceClass));
@@ -4659,7 +4659,7 @@ public @NonNull AndroidRefWatcherBuilder listenerServiceClass(
 
 ### ServiceHeapDumpListener
 
-```
+```java
 public final class ServiceHeapDumpListener implements HeapDump.Listener {
 
     ...
@@ -4680,7 +4680,7 @@ public final class ServiceHeapDumpListener implements HeapDump.Listener {
 
 ### AndroidExcludedRefs#createAppDefaults()
 
-```
+```java
 public enum AndroidExcludedRefs {
 
     ...
@@ -4710,7 +4710,7 @@ public enum AndroidExcludedRefs {
 
 ### AndroidRefWatcherBuilder#buildAndInstall()
 
-```
+```java
 private boolean watchActivities = true;
 private boolean watchFragments = true;
 
@@ -4744,7 +4744,7 @@ public @NonNull RefWatcher buildAndInstall() {
 
 ### RefWatcherBuilder#build()
 
-```
+```java
 public final RefWatcher build() {
     if (isDisabled()) {
       return RefWatcher.DISABLED;
@@ -4810,7 +4810,7 @@ public final RefWatcher build() {
 
 ### LeakCanaryInternals#setEnabledAsync()
 
-```
+```java
 public static void setEnabledAsync(Context context, final Class<?> componentClass,
 final boolean enabled) {
   final Context appContext = context.getApplicationContext();
@@ -4828,7 +4828,7 @@ final boolean enabled) {
 
 ### ActivityRefWatcher#install()
 
-```
+```java
 public static void install(@NonNull Context context, @NonNull RefWatcher refWatcher) {
     Application application = (Application) context.getApplicationContext();
     // 1
@@ -4841,7 +4841,7 @@ public static void install(@NonNull Context context, @NonNull RefWatcher refWatc
 
 可以看到，在注释1处创建一个自己的activityRefWatcher实例，并在注释2处调用了application的registerActivityLifecycleCallbacks()方法，这样就能够监听activity对应的生命周期事件了。继续看看activityRefWatcher.lifecycleCallbacks里面的操作。
 
-```
+```java
 private final Application.ActivityLifecycleCallbacks lifecycleCallbacks =
     new ActivityLifecycleCallbacksAdapter() {
       @Override public void onActivityDestroyed(Activity activity) {
@@ -4861,7 +4861,7 @@ implements Application.ActivityLifecycleCallbacks {
 
 ### FragmentRefWatcher.Helper#install()
 
-```
+```java
 public interface FragmentRefWatcher {
 
     void watchFragments(Activity activity);
@@ -4907,13 +4907,13 @@ public interface FragmentRefWatcher {
 
 这里面的逻辑很简单，首先在注释1处将Android标准的Fragment的RefWatcher类，即AndroidOfFragmentRefWatcher添加到新创建的fragmentRefWatchers中。在注释2处**使用反射将leakcanary-support-fragment包下面的SupportFragmentRefWatcher添加进来，如果你在app的build.gradle下没有添加下面这行引用的话，则会拿不到此类，即LeakCanary只会检测Activity和标准Fragment这两种情况**。
 
-```
+```java
 debugImplementation   'com.squareup.leakcanary:leakcanary-support-fragment:1.6.2'
 ```
 
 继续看到注释3处helper.activityLifecycleCallbacks里面的代码。
 
-```
+```java
 private final Application.ActivityLifecycleCallbacks activityLifecycleCallbacks =
     new ActivityLifecycleCallbacksAdapter() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -4926,7 +4926,7 @@ private final Application.ActivityLifecycleCallbacks activityLifecycleCallbacks 
 
 可以看到，在Activity执行完onActivityCreated()方法之后，会调用指定watcher的watchFragments()方法，注意，这里的watcher可能有两种，但不管是哪一种，都会使用当前传入的activity获取到对应的FragmentManager/SupportFragmentManager对象，调用它的registerFragmentLifecycleCallbacks()方法，在对应的onDestroyView()和onDestoryed()方法执行完后，分别使用refWatcher.watch(view)和refWatcher.watch(fragment)进行内存泄漏的检测，代码如下所示。
 
-```
+```java
 @Override public void onFragmentViewDestroyed(FragmentManager fm, Fragment fragment) {
     View view = fragment.getView();
     if (view != null) {
@@ -4944,7 +4944,7 @@ public void onFragmentDestroyed(FragmentManagerfm, Fragment fragment) {
 
 ### RefWatcher#watch()
 
-```
+```java
 public void watch(Object watchedReference, String referenceName) {
     if (this == DISABLED) {
       return;
@@ -4969,7 +4969,7 @@ public void watch(Object watchedReference, String referenceName) {
 
 ### KeyedWeakReference
 
-```
+```java
 final class KeyedWeakReference extends WeakReference<Object> {
     public final String key;
     public final String name;
@@ -4990,7 +4990,7 @@ final class KeyedWeakReference extends WeakReference<Object> {
 
 ### RefWatcher#ensureGoneAsync()
 
-```
+```java
 private void ensureGoneAsync(final long watchStartNanoTime, final KeyedWeakReference reference) {
     // 1
     watchExecutor.execute(new Retryable() {
@@ -5008,7 +5008,7 @@ private void ensureGoneAsync(final long watchStartNanoTime, final KeyedWeakRefer
 
 ### AndroidWatchExecutor
 
-```
+```java
 public final class AndroidWatchExecutor implements WatchExecutor {
 
     ...
@@ -5038,7 +5038,7 @@ public final class AndroidWatchExecutor implements WatchExecutor {
 
 在注释1处**AndroidWatchExecutor的构造方法**中，注意到这里**使用HandlerThread的looper新建了一个backgroundHandler**，后面会用到。在注释2处，会判断当前线程是否是主线程，如果是，则直接调用waitForIdle()方法，如果不是，则调用postWaitForIdle()，来看看这个方法。
 
-```
+```java
 private void postWaitForIdle(final Retryable retryable, final int failedAttempts) {
   mainHandler.post(new Runnable() {
     @Override public void run() {
@@ -5050,7 +5050,7 @@ private void postWaitForIdle(final Retryable retryable, final int failedAttempts
 
 很清晰，这里使用了在构造方法中用主线程looper构造的mainHandler进行post，那么waitForIdle()最终也会在主线程执行。接着看看waitForIdle()的实现。
 
-```
+```java
 private void waitForIdle(final Retryable retryable,     final int failedAttempts) {
   Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
     @Override public boolean queueIdle() {
@@ -5063,7 +5063,7 @@ private void waitForIdle(final Retryable retryable,     final int failedAttempts
 
 这里**MessageQueue.IdleHandler()回调方法的作用是当 looper 空闲的时候，会回调 queueIdle 方法，利用这个机制我们可以实现第三方库的延迟初始化**，然后执行内部的postToBackgroundWithDelay()方法。接下来看看它的实现。
 
-```
+```java
 private void postToBackgroundWithDelay(final Retryable retryable, final int failedAttempts) {
   long exponentialBackoffFactor = (long) Math.min(Math.pow(2, failedAttempts),     maxBackoffFactor);
   // 1
@@ -5086,7 +5086,7 @@ private void postToBackgroundWithDelay(final Retryable retryable, final int fail
 
 ### RefWatcher#ensureGone()
 
-```
+```java
 Retryable.Result ensureGone(final KeyedWeakReference reference, final long watchStartNanoTime) {
     long gcStartNanoTime = System.nanoTime();
     long watchDurationMs = NANOSECONDS.toMillis(gcStartNanoTime -     watchStartNanoTime);
@@ -5137,7 +5137,7 @@ Retryable.Result ensureGone(final KeyedWeakReference reference, final long watch
 
 在注释1处，执行了removeWeaklyReachableReferences()这个方法，接下来分析下它的含义。
 
-```
+```java
 private void removeWeaklyReachableReferences() {
     KeyedWeakReference ref;
     while ((ref = (KeyedWeakReference) queue.poll()) != null) {
@@ -5150,7 +5150,7 @@ private void removeWeaklyReachableReferences() {
 
 再看到注释2处，**当Android设备处于debug状态时，会直接返回RETRY进行延时重试检测的操作**。在注释3处，看看gone(reference)这个方法的逻辑。
 
-```
+```java
 private boolean gone(KeyedWeakReference reference) {
     return !retainedKeys.contains(reference.key);
 }
@@ -5160,7 +5160,7 @@ private boolean gone(KeyedWeakReference reference) {
 
 接着看到注释4处，执行了gcTrigger的runGc()方法进行垃圾回收，然后使用了removeWeaklyReachableReferences()方法移除已经被回收的引用。这里再深入地分析下runGc()的实现。
 
-```
+```java
 GcTrigger DEFAULT = new GcTrigger() {
     @Override public void runGc() {
       // Code taken from AOSP FinalizationTest:
@@ -5189,7 +5189,7 @@ GcTrigger DEFAULT = new GcTrigger() {
 
 最后分析下注释5处的代码处理。首先会判断activity是否被回收，如果还没有被回收，则证明发生内存泄露，进行if判断里面的操作。在里面先调用堆信息转储者heapDumper的dumpHeap()生成相应的 hprof 文件。这里的heapDumper是一个HeapDumper接口，具体的实现是AndroidHeapDumper。我们分析下AndroidHeapDumper的dumpHeap()方法是如何生成hprof文件的。
 
-```
+```java
 public File dumpHeap() {
     File heapDumpFile = leakDirectoryProvider.newHeapDumpFile();
 
@@ -5218,7 +5218,7 @@ public File dumpHeap() {
 
 ### ServiceHeapDumpListener#analyze()
 
-```
+```java
 @Override public void analyze(@NonNull HeapDump heapDump) {
     checkNotNull(heapDump, "heapDump");
     HeapAnalyzerService.runAnalysis(context, heapDump, listenerServiceClass);
@@ -5227,7 +5227,7 @@ public File dumpHeap() {
 
 可以看到，这里**执行了HeapAnalyzerService的runAnalysis()方法，为了避免降低app进程的性能或占用内存，这里将HeapAnalyzerService设置在了一个独立的进程中**。接着继续分析runAnalysis()方法里面的处理。
 
-```
+```java
 public final class HeapAnalyzerService extends ForegroundService
 implements AnalyzerProgressListener {
 
@@ -5262,7 +5262,7 @@ implements AnalyzerProgressListener {
 
 这里的HeapAnalyzerService实质是一个类型为IntentService的ForegroundService，执行startForegroundService()之后，会回调onHandleIntentInForeground()方法。注释1处，首先会新建一个**HeapAnalyzer**对象，顾名思义，它就是**根据RefWatcher生成的heap dumps信息来分析被怀疑的泄漏是否是真的**。在注释2处，然后会**调用它的checkForLeak()方法去使用haha库解析 hprof文件**，如下所示：
 
-```
+```java
 public @NonNull AnalysisResult checkForLeak(@NonNull File heapDumpFile,
   @NonNull String referenceKey,
   boolean computeRetainedSize) {
@@ -5303,7 +5303,7 @@ public @NonNull AnalysisResult checkForLeak(@NonNull File heapDumpFile,
 
 最后，来分析下HeapAnalyzerService中注释3处的AbstractAnalysisResultService.sendResultToListener()方法，很明显，这里AbstractAnalysisResultService的实现类就是我们刚开始分析的用于展示泄漏路径信息的DisplayLeakService对象。在里面直接**创建一个由PendingIntent构建的泄漏通知用于供用户点击去展示详细的泄漏界面DisplayLeakActivity**。核心代码如下所示：
 
-```
+```java
 public class DisplayLeakService extends AbstractAnalysisResultService {
 
     @Override
@@ -5361,7 +5361,7 @@ public class DisplayLeakService extends AbstractAnalysisResultService {
 
 首先看一下ButterKnife的基本使用，如下所示：
 
-```
+```java
 public class CollectFragment extends BaseRootFragment<CollectPresenter> implements CollectContract.View {
 
     @BindView(R.id.normal_view)
@@ -5420,7 +5420,7 @@ public class CollectFragment extends BaseRootFragment<CollectPresenter> implemen
 
 首先，在编写好上述的示例代码之后，调用 gradle build 命令，在app/build/generated/source/apt下将可以找到APT为我们生产的配套模板代码CollectFragment_ViewBinding，如下所示：
 
-```
+```java
 public class CollectFragment_ViewBinding implements Unbinder {
     private CollectFragment target;
     
@@ -5465,7 +5465,7 @@ public class CollectFragment_ViewBinding implements Unbinder {
 
 生成的配套模板CollectFragment_ViewBinding中，在注释1处，使用了ButterKnife内部的工具类Utils的findRequiredViewAsType()方法来寻找控件。在注释2处，使用了view的setOnClickListener()方法来添加了一个去抖动的DebouncingOnClickListener，这样便可以防止重复点击，在重写的doClick()方法内部，直接调用了CollectFragment的onClick方法。最后，再深入看下Utils的findRequiredViewAsType()方法内部的实现。
 
-```
+```java
 public static <T> T findRequiredViewAsType(View source, @IdRes int id, String who,
   Class<T> cls) {
     // 1
@@ -5498,7 +5498,7 @@ public static <T> T castView(View view, @IdRes int id, String who, Class<T> cls)
 
 接下来，为了使用这套模板代码，我们必须调用ButterKnife的bind()方法实现代码注入，即自动帮我们执行重复繁琐的findViewById和setOnClicklistener操作。下面我们来分析下bind()方法是如何实现注入的。
 
-```
+```java
 @NonNull @UiThread
 public static Unbinder bind(@NonNull Object target, @NonNull View source) {
     return createBinding(target, source);
@@ -5507,7 +5507,7 @@ public static Unbinder bind(@NonNull Object target, @NonNull View source) {
 
 在bind()方法中调用了createBinding()，
 
-```
+```java
 @NonNull @UiThread
 public static Unbinder bind(@NonNull Object target, @NonNull View source) {
     Class<?> targetClass = target.getClass();
@@ -5532,7 +5532,7 @@ public static Unbinder bind(@NonNull Object target, @NonNull View source) {
 
 下面，来详细分析下 findBindingConstructorForClass() 方法的实现逻辑。
 
-```
+```java
 @VisibleForTesting
 static final Map<Class<?>, Constructor<? extends Unbinder>> BINDINGS = new LinkedHashMap<>();
 
@@ -5586,7 +5586,7 @@ private static Constructor<? extends Unbinder> findBindingConstructorForClass(Cl
 
 首先，先来分析下ButterKnifeProcessor的重写的入口方法init()。
 
-```
+```java
 @Override public synchronized void init(ProcessingEnvironment env) {
     super.init(env);
 
@@ -5609,7 +5609,7 @@ private static Constructor<? extends Unbinder> findBindingConstructorForClass(Cl
 
 接着，再来看看被重写的getSupportedAnnotationTypes()方法，这个方法的作用主要是用于指定ButterknifeProcessor注册了哪些注解的。
 
-```
+```java
 @Override public Set<String> getSupportedAnnotationTypes() {
     Set<String> types = new LinkedHashSet<>();
     for (Class<? extends Annotation> annotation : getSupportedAnnotations()) {
@@ -5623,7 +5623,7 @@ private static Constructor<? extends Unbinder> findBindingConstructorForClass(Cl
 
 接着看下getSupportedAnnotations()方法，
 
-```
+```java
 private Set<Class<? extends Annotation>> getSupportedAnnotations() {
     Set<Class<? extends Annotation>> annotations = new LinkedHashSet<>();
 
@@ -5648,7 +5648,7 @@ private Set<Class<? extends Annotation>> getSupportedAnnotations() {
 
 可以看到，这里注册了一系列的Bindxxx注解类和监听列表LISTENERS，接着看一下LISTENERS中包含的监听方法：
 
-```
+```java
 private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList(
     OnCheckedChanged.class, 
     OnClick.class, 
@@ -5666,7 +5666,7 @@ private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList
 
 最后，来分析下整个ButterKnifeProcessor中最关键的方法process()。
 
-```
+```java
 @Override public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
     // 1
     Map<TypeElement, BindingSet> bindingMap = findAndParseTargets(env);
@@ -5690,7 +5690,7 @@ private static final List<Class<? extends Annotation>> LISTENERS = Arrays.asList
 
 首先，在注释1处通过**findAndParseTargets()方法**，知名见义，它应该就是**找到并解析注解目标的关键方法**了，继续看看它内部的处理：
 
-```
+```java
 private Map<TypeElement, BindingSet> findAndParseTargets(RoundEnvironment env) {
     Map<TypeElement, BindingSet.Builder> builderMap = new LinkedHashMap<>();
     Set<TypeElement> erasedTargetNames = new LinkedHashSet<>();
@@ -5747,7 +5747,7 @@ findAndParseTargets()方法的代码非常多，这里尽可能做了精简。�
 
 接着，分析下注释2处parseBindView是如何对每一个@BindView注解的元素进行处理。
 
-```
+```java
 private void parseBindView(Element element, Map<TypeElement, BindingSet.Builder> builderMap,
   Set<TypeElement> erasedTargetNames) {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -5787,7 +5787,7 @@ private void parseBindView(Element element, Map<TypeElement, BindingSet.Builder>
 
 首先，在注释1、2处均是一些验证处理操作，如果不符合则会return。然后，看到注释3处，这里获取了BindView要绑定的View的id，然后先从builderMap中获取BindingSet.Builder对象，如果存在，直接return。如果不存在，则会在注释4处的 getOrCreateBindingBuilder()方法生成一个。看一下getOrCreateBindingBuilder()方法:
 
-```
+```java
 private BindingSet.Builder getOrCreateBindingBuilder(
   Map<TypeElement, BindingSet.Builder> builderMap, TypeElement enclosingElement) {
     BindingSet.Builder builder = builderMap.get(enclosingElement);
@@ -5805,7 +5805,7 @@ private BindingSet.Builder getOrCreateBindingBuilder(
 
 最后，再回到我们的process()方法中，现在**所有的绑定的集合数据都放在了bindingMap对象中，这里使用for循环取出每一个BindingSet对象，调用它的brewJava()方法**，看看它内部的处理：
 
-```
+```java
 JavaFile brewJava(int sdk, boolean debuggable) {
     TypeSpec bindingConfiguration = createType(sdk, debuggable);
     return JavaFile.builder(bindingClassName.packageName(), bindingConfiguration)
@@ -5927,7 +5927,7 @@ Component既是注射器也是一个容器总管，而module则是作为容器�
 
 使用它表示ChildComponent依赖于FatherComponent，如下所示：
 
-```
+```java
 @Component(modules = ChildModule.class, dependencies = FatherComponent.class)
 public interface ChildComponent {
     ...
@@ -5942,7 +5942,7 @@ public interface ChildComponent {
 
 ### 首先，创建一个BaseActivityComponent的Subcomponent：
 
-```
+```java
 @Subcomponent(modules = {AndroidInjectionModule.class})
 public interface BaseActivityComponent extends AndroidInjector<BaseActivity> {
 
@@ -5956,7 +5956,7 @@ public interface BaseActivityComponent extends AndroidInjector<BaseActivity> {
 
 ### 然后，创建一个将会导入Subcomponent的公有Module。
 
-```
+```java
 // 1
 @Module(subcomponents = {BaseActivityComponent.class})
 public abstract class AbstractAllActivityModule {
@@ -5977,7 +5977,7 @@ public abstract class AbstractAllActivityModule {
 
 ### 接着，配置项目的Application。
 
-```
+```java
 public class WanAndroidApp extends Application implements HasActivityInjector {
 
     // 3
@@ -6013,7 +6013,7 @@ public class WanAndroidApp extends Application implements HasActivityInjector {
 
 首先，在注释1处，使用AppModule模块和httpModule模块构建出AppComponent的实现类DaggerAppComponent。这里看一下AppComponent的配置代码：
 
-```
+```java
 @Singleton
 @Component(modules = {AndroidInjectionModule.class,
         AndroidSupportInjectionModule.class,
@@ -6037,7 +6037,7 @@ public interface AppComponent {
 
 可以看到，AppComponent依赖了AndroidInjectionModule模块，它包含了一些基础配置的绑定设置，如activityInjectorFactories、fragmentInjectorFactories等等，而AndroidSupportInjectionModule模块显然就是多了一个supportFragmentInjectorFactories的绑定设置，activityInjectorFactories的内容如所示：
 
-```
+```java
 @Beta
 @Module
 public abstract class AndroidInjectionModule {
@@ -6056,7 +6056,7 @@ public abstract class AndroidInjectionModule {
 
 接着，下面依赖的AbstractAllActivityModule、 AbstractAllFragmentModule、AbstractAllDialogFragmentModule则是为项目的所有Activity、Fragment、DialogFragment提供的统一基类抽象Module，这里看下AbstractAllActivityModule的配置：
 
-```
+```java
 @Module(subcomponents = {BaseActivityComponent.class})
 public abstract class AbstractAllActivityModule {
 
@@ -6073,7 +6073,7 @@ public abstract class AbstractAllActivityModule {
 
 可以看到，项目下的所有xxxActiviity都有对应的contributesxxxActivityInjector()方法提供实例注入。并且，注意到AbstractAllActivityModule这个模块依赖的 subcomponents为BaseActivityComponent，前面说过了，每一个继承于BaseActivity的Activity都继承于BaseActivityComponent这一个subcomponents。同理，AbstractAllFragmentModule与AbstractAllDialogFragmentModule也是类似的实现模式，如下所示：
 
-```
+```java
 // 1
 @Module(c = BaseFragmentComponent.class)
 public abstract class AbstractAllFragmentModule {
@@ -6110,7 +6110,7 @@ public abstract class AbstractAllDialogFragmentModule {
 
 很简单，只需在目标Activity的onCreate()方法前的super.onCreate(savedInstanceState)前配置一行代码 AndroidInjection.inject(this)，如下所示：
 
-```
+```java
 public abstract class BaseActivity<T extends AbstractPresenter> extends AbstractSimpleActivity implements
     AbstractView {
 
@@ -6132,7 +6132,7 @@ public abstract class BaseActivity<T extends AbstractPresenter> extends Abstract
 
 这里使用了@Inject表明了需要注入mPresenter实例，然后，我们需要在具体的Presenter类的构造方法上使用@Inject提供基于当前构造方法的mPresenter实例，如下所示：
 
-```
+```java
 public class MainPresenter extends BasePresenter<MainContract.View> implements MainContract.Presenter {
 
     ...
@@ -6162,7 +6162,7 @@ public class MainPresenter extends BasePresenter<MainContract.View> implements M
 
 首先，看到DaggerAppComponent的builder()方法：
 
-```
+```java
 public static Builder builder() {
     return new Builder();
 }
@@ -6170,7 +6170,7 @@ public static Builder builder() {
 
 里面直接返回了一个新建的Builder静态内部类对象，看看它的构造方法中做了什么：
 
-```
+```java
 public static final class Builder {
 
     private Builder() {}
@@ -6182,7 +6182,7 @@ public static final class Builder {
 
 看来，Builder的默认构造方法什么也没有做，那么，真正的实现肯定在Builder对象的build()方法中，接着看到build()方法。
 
-```
+```java
 public static final class Builder {
 
     ...
@@ -6198,7 +6198,7 @@ public static final class Builder {
 
 在Builder的build()方法中直接返回了新建的DaggerAppComponent对象。下面，看看DaggerAppComponent的构造方法:
 
-```
+```java
 private DaggerAppComponent(Builder builder) {
     initialize(builder);
 }
@@ -6206,7 +6206,7 @@ private DaggerAppComponent(Builder builder) {
 
 在DaggerAppComponent的构造方法中调用了initialize方法，顾名思义，它就是真正初始化项目全局依赖配置的地方了，下面，来看看它内部的实现：
 
-```
+```java
 private void initialize(final Builder builder) {
     // 1
     this.mainActivitySubcomponentBuilderProvider =
@@ -6230,7 +6230,7 @@ private void initialize(final Builder builder) {
 
 在注释1处，新建了一个mainActivit的子组件构造器实例提供者Provider。在注释2处，使用匿名内部类的方式重写了该Provider的get()方法，返回一个新创建好的MainActivitySubcomponentBuilder对象。很显然，它就是负责创建管理MAinActivity中所需依赖的Subcomponent建造者。接下来重点来分析下MainActivitySubcomponentBuilder这个类的作用。
 
-```
+```java
 // 1
 private final class MainActivitySubcomponentBuilder
   extends AbstractAllActivityModule_ContributesMainActivityInjector.MainActivitySubcomponent
@@ -6257,7 +6257,7 @@ private final class MainActivitySubcomponentBuilder
 
 首先，在注释1处，MainActivitySubcomponentBuilder继承了AbstractAllActivityModule_ContributesMainActivityInjector内部的子组件MainActivitySubcomponent的内部的子组件建造者类Builder，如下所示：
 
-```
+```java
 @Subcomponent(modules = MainActivityModule.class)
 public interface MainActivitySubcomponent extends AndroidInjector<MainActivity> {
     @Subcomponent.Builder
@@ -6272,7 +6272,7 @@ public interface MainActivitySubcomponent extends AndroidInjector<MainActivity> 
 
 接下来分析下AndroidInjector的内部实现，源码如下所示：
 
-```
+```java
 public interface AndroidInjector<T> {
 
     void inject(T instance);
@@ -6302,7 +6302,7 @@ public interface AndroidInjector<T> {
 
 接着，我们回到MainActivitySubcomponentBuilder类，可以看到，它实现了AndroidInjector.Builder的seedInstance()和build()方法。在注释3处首先播种了MainActivity的实例，然后 在注释2处新建了一个MainActivitySubcomponentImpl对象返回。我们看看MainActivitySubcomponentImpl这个类是如何将mPresenter依赖注入的，相关源码如下：
 
-```
+```java
 private final class MainActivitySubcomponentImpl
     implements AbstractAllActivityModule_ContributesMainActivityInjector
     .MainActivitySubcomponent {
@@ -6329,7 +6329,7 @@ private final class MainActivitySubcomponentImpl
 
 在注释1处，MainActivitySubcomponentImpl实现了AndroidInjector接口的inject()方法，**在injectMainActivity()首先调用getMainPresenter()方法从MainPresenter_Factory工厂类中新建了一个MainPresenter对象**。我们看看MainPresenter的newMainPresenter()方法：
 
-```
+```java
 public static MainPresenter newMainPresenter(DataManager dataManager) {
     return new MainPresenter(dataManager);
 }
@@ -6337,7 +6337,7 @@ public static MainPresenter newMainPresenter(DataManager dataManager) {
 
 这里直接新建了一个MainPresenter。然后我们回到MainActivitySubcomponentImpl类的注释3处，继续调用了**BaseActivity_MembersInjector的injectMPresenter()方法**，顾名思义，可以猜到，它是BaseActivity的成员注射器，继续看看injectMPresenter()内部：
 
-```
+```java
 public static <T extends AbstractPresenter> void injectMPresenter(
   BaseActivity<T> instance, T mPresenter) {
     instance.mPresenter = mPresenter;
@@ -6350,7 +6350,7 @@ public static <T extends AbstractPresenter> void injectMPresenter(
 
 我们继续查看appComponent的inject()方法：
 
-```
+```java
 @Override
 public void inject(WanAndroidApp wanAndroidApp) {
   injectWanAndroidApp(wanAndroidApp);
@@ -6359,7 +6359,7 @@ public void inject(WanAndroidApp wanAndroidApp) {
 
 在inject()方法里调用了injectWanAndroidApp()，继续查看injectWanAndroidApp()方法：
 
-```
+```java
 private WanAndroidApp injectWanAndroidApp(WanAndroidApp instance) {
     WanAndroidApp_MembersInjector.injectMAndroidInjector(
         instance,
@@ -6370,7 +6370,7 @@ private WanAndroidApp injectWanAndroidApp(WanAndroidApp instance) {
 
 首先，执行getDispatchingAndroidInjectorOfActivity()方法得到了一个Activity类型的DispatchingAndroidInjector对象，继续查看getDispatchingAndroidInjectorOfActivity()方法：
 
-```
+```java
 private DispatchingAndroidInjector<Activity> getDispatchingAndroidInjectorOfActivity() {
     return DispatchingAndroidInjector_Factory.newDispatchingAndroidInjector(
     getMapOfClassOfAndProviderOfFactoryOf());
@@ -6379,7 +6379,7 @@ private DispatchingAndroidInjector<Activity> getDispatchingAndroidInjectorOfActi
 
 在getDispatchingAndroidInjectorOfActivity()方法里面，首先调用了getMapOfClassOfAndProviderOfFactoryOf()方法，我们看到这个方法：
 
-```
+```java
 private Map<Class<? extends Activity>, Provider<AndroidInjector.Factory<? extends Activity>>>
   getMapOfClassOfAndProviderOfFactoryOf() {
     return MapBuilder
@@ -6403,7 +6403,7 @@ private Map<Class<? extends Activity>, Provider<AndroidInjector.Factory<? extend
 
 我们再回到getDispatchingAndroidInjectorOfActivity()方法，这里将上面得到的Map容器传入了DispatchingAndroidInjector_Factory的newDispatchingAndroidInjector()方法中，这里应该就是新建DispatchingAndroidInjector的地方了。我们点进去看看：
 
-```
+```java
 public static <T> DispatchingAndroidInjector<T> newDispatchingAndroidInjector(
   Map<Class<? extends T>, Provider<AndroidInjector.Factory<? extends T>>> injectorFactories) {
     return new DispatchingAndroidInjector<T>(injectorFactories);
@@ -6412,7 +6412,7 @@ public static <T> DispatchingAndroidInjector<T> newDispatchingAndroidInjector(
 
 在这里，果然新建了一个DispatchingAndroidInjector对象。继续看看DispatchingAndroidInjector的构造方法：
 
-```
+```java
 @Inject
 DispatchingAndroidInjector(
   Map<Class<? extends T>, Provider<AndroidInjector.Factory<? extends T>>> injectorFactories) {
@@ -6424,7 +6424,7 @@ DispatchingAndroidInjector(
 
 我们再回到WanAndroidApp_MembersInjector的injectMAndroidInjector()方法，将上面得到的DispatchingAndroidInjector实例传入，继续查看injectMAndroidInjector()这个方法：
 
-```
+```java
 public static void injectMAndroidInjector(
   WanAndroidApp instance, DispatchingAndroidInjector<Activity> mAndroidInjector) {
     instance.mAndroidInjector = mAndroidInjector;
@@ -6437,7 +6437,7 @@ public static void injectMAndroidInjector(
 
 首先，我们看到AndroidInjection.inject(this)这个方法：
 
-```
+```java
 public static void inject(Activity activity) {
     checkNotNull(activity, "activity");
     
@@ -6465,7 +6465,7 @@ public static void inject(Activity activity) {
 
 在注释1处，会先判断当前的application是否实现了HasActivityInjector这个接口，如果没有，则抛出RuntimeException。如果有，会继续在注释2处调用application的activityInjector()方法得到DispatchingAndroidInjector实例。最后，在注释3处，会将当前的activity实例传入activityInjector的inject()方法中。我们继续查看inject()方法：
 
-```
+```java
 @Override
 public void inject(T instance) {
     boolean wasInjected = maybeInject(instance);
@@ -6477,7 +6477,7 @@ public void inject(T instance) {
 
 **DispatchingAndroidInjector的inject()方法，它的作用就是给传入的instance实例执行成员注入**。具体在这个案例中，其实就是负责将创建好的Presenter实例赋值给BaseActivity对象 的mPresenter全局变量。在inject()方法中，又调用了maybeInject()方法，我们继续查看它：
 
-```
+```java
 @CanIgnoreReturnValue
 public boolean maybeInject(T instance) {
     // 1
@@ -6506,7 +6506,7 @@ public boolean maybeInject(T instance) {
 
 在注释1处，我们从injectorFactories（前面得到的Map容器）中根据当前Activity实例拿到了factoryProvider对象，这里我们具体一点，看到MainActivity对应的factoryProvider，也就是我们研究的第一个问题中的mainActivitySubcomponentBuilderProvider：
 
-```
+```java
 private void initialize(final Builder builder) {
     this.mainActivitySubcomponentBuilderProvider =
         new Provider<
@@ -6527,7 +6527,7 @@ private void initialize(final Builder builder) {
 
 在maybeInject()方法的注释2处，调用了mainActivitySubcomponentBuilderProvider的get()方法得到了一个新建的MainActivitySubcomponentBuilder对象。在注释3处执行了它的create方法，create()方法的具体实现在AndroidInjector的内部类Builder中：
 
-```
+```java
 abstract class Builder<T> implements AndroidInjector.Factory<T> {
     @Override
     public final AndroidInjector<T> create(T instance) {
@@ -6540,7 +6540,7 @@ abstract class Builder<T> implements AndroidInjector.Factory<T> {
 
 最后，在注释4处，执行了MainActivitySubcomponentImpl的inject()方法：
 
-```
+```java
 private final class MainActivitySubcomponentImpl
     implements AbstractAllActivityModule_ContributesMainActivityInjector
     .MainActivitySubcomponent {
@@ -6567,7 +6567,7 @@ private final class MainActivitySubcomponentImpl
 
 这里的逻辑已经在问题一的最后部分详细讲解了，最后，会在注释3处调用BaseActivity_MembersInjector的injectMPresenter()方法：
 
-```
+```java
 public static <T extends AbstractPresenter> void injectMPresenter(
   BaseActivity<T> instance, T mPresenter) {
     instance.mPresenter = mPresenter;
@@ -6586,13 +6586,13 @@ public static <T extends AbstractPresenter> void injectMPresenter(
 
 ### 首先，定义要传递的事件实体
 
-```
+```java
 public class CollectEvent { ... }
 ```
 
 ### 准备订阅者：声明并注解你的订阅方法
 
-```
+```java
 @Subscribe(threadMode = ThreadMode.MAIN)
 public void onMessageEvent(CollectEvent event) {
     LogHelper.d("OK");
@@ -6601,7 +6601,7 @@ public void onMessageEvent(CollectEvent event) {
 
 ### 在2中，也就是订阅中所在的类中，注册和解注册你的订阅者
 
-```
+```java
 @Override
 public void onStart() {
     super.onStart();
@@ -6617,7 +6617,7 @@ public void onStop() {
 
 ### 发送事件
 
-```
+```java
 EventBus.getDefault().post(new CollectEvent());
 ```
 
@@ -6654,7 +6654,7 @@ EventBus是基于观察者模式扩展而来的，我们先了解一下观察者
 
 1、首先，创建抽象观察者
 
-```
+```java
 public interface observer {
     
     public void update(String message);
@@ -6663,7 +6663,7 @@ public interface observer {
 
 2、接着，创建具体观察者
 
-```
+```java
 public class WeXinUser implements observer {
     private String name;
     
@@ -6680,7 +6680,7 @@ public class WeXinUser implements observer {
 
 3、然后，创建抽象被观察者
 
-```
+```java
 public interface observable {
     
     public void addWeXinUser(WeXinUser weXinUser);
@@ -6693,7 +6693,7 @@ public interface observable {
 
 4、最后，创建具体被观察者
 
-```
+```java
 public class Subscription implements observable {
     private List<WeXinUser> mUserList = new ArrayList();
     
@@ -6718,7 +6718,7 @@ public class Subscription implements observable {
 
 在具体使用时，我们便可以这样使用，如下所示：
 
-```
+```java
 Subscription subscription = new Subscription();
 
 WeXinUser hongYang = new WeXinUser("HongYang");
@@ -6779,7 +6779,7 @@ subscription.notify("New article coming");
 
 首先，从获取EventBus实例的方法getDefault()开始分析：
 
-```
+```java
 public static EventBus getDefault() {
     if (defaultInstance == null) {
         synchronized (EventBus.class) {
@@ -6796,7 +6796,7 @@ public static EventBus getDefault() {
 
 接着，看到EventBus的默认构造方法中做了什么:
 
-```
+```java
 private static final EventBusBuilder DEFAULT_BUILDER = new EventBusBuilder();
 
 public EventBus() {
@@ -6808,7 +6808,7 @@ public EventBus() {
 
 再看一下EventBusBuilder的构造方法：
 
-```
+```java
 public class EventBusBuilder {
 
     ...
@@ -6823,7 +6823,7 @@ public class EventBusBuilder {
 
 EventBusBuilder的构造方法中什么也没有做，那继续查看EventBus的这个有参构造方法：
 
-```
+```java
 private final Map<Class<?>, CopyOnWriteArrayList<Subscription>> subscriptionsByEventType;
 private final Map<Object, List<Class<?>>> typesBySubscriber;
 private final Map<Class<?>, Object> stickyEvents;
@@ -6874,7 +6874,7 @@ EventBus(EventBusBuilder builder) {
 
 分析完这些核心的字段之后，后面的讲解就比较轻松了，接着查看EventBus的regist()方法：
 
-```
+```java
 public void register(Object subscriber) {
     Class<?> subscriberClass = subscriber.getClass();
     
@@ -6893,7 +6893,7 @@ public void register(Object subscriber) {
 
 接着查看SubscriberMethodFinder的findSubscriberMethods()方法：
 
-```
+```java
 List<SubscriberMethod> findSubscriberMethods(Class<?> subscriberClass) {
     // 1
     List<SubscriberMethod> subscriberMethods = METHOD_CACHE.get(subscriberClass);
@@ -6921,7 +6921,7 @@ List<SubscriberMethod> findSubscriberMethods(Class<?> subscriberClass) {
 
 接着查看SubscriberMethodFinder的findUsingInfo()方法：
 
-```
+```java
 private List<SubscriberMethod> findUsingInfo(Class<?> subscriberClass) {
     // 1
     FindState findState = prepareFindState();
@@ -6949,7 +6949,7 @@ private List<SubscriberMethod> findUsingInfo(Class<?> subscriberClass) {
 
 在注释1处，调用了SubscriberMethodFinder的prepareFindState()方法创建了一个新的 FindState 类，来看看这个方法：
 
-```
+```java
 private static final FindState[] FIND_STATE_POOL = new FindState[POOL_SIZE];
 private FindState prepareFindState() {
     // 1
@@ -6971,7 +6971,7 @@ private FindState prepareFindState() {
 
 接着来分析下FindState这个类：
 
-```
+```java
 static class FindState {
     ....
     void initForSubscriber(Class<?> subscriberClass) {
@@ -6987,7 +6987,7 @@ static class FindState {
 
 接着回到SubscriberMethodFinder的注释2处的SubscriberMethodFinder()方法：
 
-```
+```java
 private SubscriberInfo getSubscriberInfo(FindState findState) {
     if (findState.subscriberInfo != null && findState.subscriberInfo.getSuperSubscriberInfo() != null) {
         SubscriberInfo superclassInfo = findState.subscriberInfo.getSuperSubscriberInfo();
@@ -7011,7 +7011,7 @@ private SubscriberInfo getSubscriberInfo(FindState findState) {
 
 接着查看注释3处的findUsingReflectionInSingleClass()方法：
 
-```
+```java
 private void findUsingReflectionInSingleClass(FindState findState) {
     Method[] methods;
     try {
@@ -7055,7 +7055,7 @@ private void findUsingReflectionInSingleClass(FindState findState) {
 
 最后，继续查看注释4处的getMethodsAndRelease()方法：
 
-```
+```java
 private List<SubscriberMethod> getMethodsAndRelease(FindState findState) {
     // 1
     List<SubscriberMethod> subscriberMethods = new ArrayList<>(findState.subscriberMethods);
@@ -7077,7 +7077,7 @@ private List<SubscriberMethod> getMethodsAndRelease(FindState findState) {
 
 在这里，首先在注释1处，从findState中取出了保存的subscriberMethods。在注释2处，将findState里的保存的所有对象进行回收。在注释3处，把findState存储在 FindState 池中方便下一次使用，以提高性能。最后，在注释4处，返回subscriberMethods。接着，**在EventBus的 register() 方法的最后会调用 subscribe 方法**：
 
-```
+```java
 public void register(Object subscriber) {
     Class<?> subscriberClass = subscriber.getClass();
     List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
@@ -7091,7 +7091,7 @@ public void register(Object subscriber) {
 
 继续看看这个subscribe()方法做的事情：
 
-```
+```java
 private void subscribe(Object subscriber, SubscriberMethod subscriberMethod) {
     Class<?> eventType = subscriberMethod.eventType;
     Subscription newSubscription = new Subscription(subscriber, subscriberMethod);
@@ -7146,7 +7146,7 @@ private void subscribe(Object subscriber, SubscriberMethod subscriberMethod) {
 
 接着查看这个checkPostStickyEventToSubscription()方法：
 
-```
+```java
 private void checkPostStickyEventToSubscription(Subscription newSubscription, Object stickyEvent) {
     if (stickyEvent != null) {
         postToSubscription(newSubscription, stickyEvent, isMainThread());
@@ -7158,7 +7158,7 @@ private void checkPostStickyEventToSubscription(Subscription newSubscription, Ob
 
 ### EventBus.getDefault().post(new CollectEvent())
 
-```
+```java
 public void post(Object event) {
     // 1
     PostingThreadState postingState = currentPostingThreadState.get();
@@ -7185,7 +7185,7 @@ public void post(Object event) {
 
 注释1处，这里的currentPostingThreadState 是一个 ThreadLocal 类型的对象，里面存储了 PostingThreadState，而 PostingThreadState 中包含了一个 eventQueue 和其他一些标志位，相关的源码如下：
 
-```
+```java
 private final ThreadLocal <PostingThreadState> currentPostingThreadState = new ThreadLocal <PostingThreadState> () {
 @Override
 protected PostingThreadState initialValue() {
@@ -7205,7 +7205,7 @@ final static class PostingThreadState {
 
 接着把传入的 event，保存到了当前线程中的一个变量 PostingThreadState 的 eventQueue 中。在注释2处，最后调用了 postSingleEvent() 方法，我们继续查看这个方法：
 
-```
+```java
 private void postSingleEvent(Object event, PostingThreadState postingState) throws Error {
     Class<?> eventClass = event.getClass();
     boolean subscriptionFound = false;
@@ -7231,7 +7231,7 @@ private void postSingleEvent(Object event, PostingThreadState postingState) thro
 
 首先，在注释1处，首先取出 Event 的 class 类型，接着**会对 eventInheritance 标志位 判断，它默认为true，如果设为 true 的话，它会在发射事件的时候判断是否需要发射父类事件，设为 false，能够提高一些性能**。接着，在注释2处，会调用lookupAllEventTypes() 方法，它的作用就是取出 Event 及其父类和接口的 class 列表，当然重复取的话会影响性能，所以它也做了一个 eventTypesCache 的缓存，这样就不用重复调用 getSuperclass() 方法。最后，在注释3处会调用postSingleEventForEventType()方法，看下这个方法：
 
-```
+```java
 private boolean postSingleEventForEventType(Object event, PostingThreadState postingState, Class <?> eventClass) {
     CopyOnWriteArrayList <Subscription> subscriptions;
     synchronized(this) {
@@ -7264,7 +7264,7 @@ private boolean postSingleEventForEventType(Object event, PostingThreadState pos
 
 这个时候再看看这个postToSubscription()方法：
 
-```
+```java
 private void postToSubscription(Subscription subscription, Object event, boolean isMainThread) {
     switch (subscription.subscriberMethod.threadMode) {
         case POSTING:
@@ -7318,7 +7318,7 @@ private void postToSubscription(Subscription subscription, Object event, boolean
 
 它的核心源码如下所示：
 
-```
+```java
 public synchronized void unregister(Object subscriber) {
     List<Class<?>> subscribedTypes = typesBySubscriber.get(subscriber);
     if (subscribedTypes != null) {
@@ -7340,7 +7340,7 @@ public synchronized void unregister(Object subscriber) {
 
 如果想要发射 sticky 事件需要通过 EventBus的postSticky() 方法，内部源码如下所示：
 
-```
+```java
 public void postSticky(Object event) {
     synchronized (stickyEvents) {
         // 1
@@ -7353,7 +7353,7 @@ public void postSticky(Object event) {
 
 在注释1处，先将该事件放入 stickyEvents 中，接着在注释2处使用post()发送事件。前面我们在分析register()方法的最后部分时，其中有关粘性事件的源码如下：
 
-```
+```java
 if (subscriberMethod.sticky) {
     Object stickyEvent = stickyEvents.get(eventType);
     if (stickyEvent != null) {
